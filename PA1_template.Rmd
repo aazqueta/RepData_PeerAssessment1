@@ -44,7 +44,6 @@ summary(Steps_Day$steps)
 library(ggplot2)
 
 Steps_Interval <- aggregate(steps ~ interval, mydata, mean)
-
 qplot(Steps_Interval$interval, Steps_Interval$steps, mydata, color="orangered", xlab= "Interval", ylab= "Quantity", main= "Total number of steps per interval")
 print(Steps_Interval[which.max(Steps_Interval$steps), ])
 ```
