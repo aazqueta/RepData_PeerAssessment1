@@ -1,25 +1,110 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Project 1 Reproducible Research"
+author: "Andres Azqueta"
+date: "Friday, April 17, 2015"
+output: html_document
 ---
 
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 
+#### Loading Data
+```{r}
+setwd("C:/Users/Andres/Desktop/Online_courses/Reproducible Research/Project 1")
 
-## What is the average daily activity pattern?
+library(gdata)
+
+file <- "C:/Users/Andres/Desktop/Online_courses/Reproducible Research/Project 1/activity.csv"
+
+mydata <- read.csv(file)
+```
+
+#### Examing Data
+```{r}
+names(mydata)
+summary(mydata$interval)
+```
+
+#### Histogram of the number of steps taken each day
+```{r}
+Steps_Day <- aggregate(steps ~ date, mydata, sum)
+class(Steps_Day)
+hist(Steps_Day$steps, breaks=seq(0,25000,l=50), main= "Total Number of Steps", ylab="Frequency", xlab="Steps per Day")
+```
+
+#### Summary Statistics
+```{r}
+summary(Steps_Day$steps)
+```
+
+#### Ploting the average daily activity pattern
+``` {r}
+library(ggplot2)
+
+Steps_Interval <- aggregate(steps ~ interval, mydata, mean)
+
+qplot(Steps_Interval$interval, Steps_Interval$steps, mydata, color="orangered", xlab= "Interval", ylab= "Quantity", main= "Total number of steps per interval")
+print(Steps_Interval[which.max(Steps_Interval$steps), ])
+```
+
+#### Imputing missing values
+``` {r}
+sum(is.na(mydata))
+average <- mean(na.omit(mydata$steps))
+print(average)
+
+newdata <- mydata
+newdata[is.na(newdata)] <- as.numeric(average)
+```
+
+#### Histogram - Total Number of steps taken ecach day (imputed values)
+``` {r}
+
+newdata1 <- aggregate(steps ~ date, newdata, sum)
+summary(newdata1)
+
+newdata1 <- as.matrix(newdata1)
+hist(as.numeric(newdata1), breaks=seq(0,25000,l=50), main= "Total Number of Steps per day (imputed values)", ylab="Frequency", xlab="Steps per Day")
+
+```
+
+#### Differences in activity patterns between weekdays and weekends?
+
+#### Fixing the data
+``` {r}
+library(timeDate)
+
+class(newdata$steps)
+class(newdata$date)
+class(newdata$interval) 
+
+newdata=as.data.frame(newdata)
+
+newdata$weekday <- isWeekday(newdata$date, wday=1:5)
+head(newdata)
+
+newdata$weekday[newdata$weekday==TRUE]<-"weekday"
+newdata$weekday[newdata$weekday==FALSE]<-"weekend"
+
+newdata$weekday<-factor(newdata$weekday)
+
+head(newdata)
+table(newdata$weekday)
+```
+
+#### Plot making
+
+``` {r}
+steps_interval <- aggregate(steps ~ interval+weekday, newdata, mean)
+
+ggplot(steps_interval, aes(x=interval, y=steps)) +
+  geom_line(stat="identity", colour="blue", ) +
+  guides(fill=TRUE) + 
+  facet_grid(scales="free", space="free", .~weekday) +
+  labs(x="Interval [min]", y="Number of steps") +  
+  labs(title="Number of steps per time interval") 
+```
 
 
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
